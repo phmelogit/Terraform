@@ -10,26 +10,11 @@ variable "image" {
             dev = "quay.io/influxdb/influxdb:v2.0.2"
             prod = "quay.io/influxdb/influxdb:v2.0.2"
         }
+        grafana = {
+            dev = "grafana/grafana-oss"
+            prod = "grafana/grafana-oss"
+        }        
     }
-}
-
-variable "containername" {
-    type =string
-    default="nodered"
-}
-
-variable "volpath" {
-    type =string
-    default="W:\\dockervol\\noderedvol"
-}
-
-variable "int_port" {
-    type =number
-    validation {
-      condition = var.int_port == 1880
-      error_message = "The internal port must be 1880."
-    }
-    sensitive = true
 }
 
 variable "ext_port" {
