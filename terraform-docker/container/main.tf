@@ -16,6 +16,18 @@ resource "docker_container" "app_container" {
     container_path = var.vol_container_path_in
     volume_name = docker_volume.container_volume[count.index].name
   }
+  provisioner "local-exec" {
+    when = create
+    command = "echo ${self.name}: ${join(":", self.network_data[*].ip_address, [for x in self.ports[*]["external"]: x])}  >> ${path.cwd}/../containers.txt"
+    interpreter = ["PowerShell", "-Command"]
+    on_failure = fail
+  }  
+  provisioner "local-exec" {
+    when = destroy
+    command = "del ${path.cwd}/../containers.txt"
+    interpreter = ["PowerShell", "-Command"]
+    on_failure = continue
+  }  
 }
 
 resource "docker_volume" "container_volume" {
@@ -37,6 +49,4 @@ resource "docker_volume" "container_volume" {
     interpreter = ["PowerShell", "-Command"]
     on_failure = fail
   }
-
-
 }

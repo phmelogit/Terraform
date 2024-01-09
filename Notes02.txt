@@ -138,3 +138,7 @@ https://developer.hashicorp.com/terraform/tutorials/configuration-language/for-e
 62, 63 foi só pra adicionar o grafana.
 
 64. Self Referencing and Provisioner Failure Modes
+
+65. Terraform Apply Yourself - Self Referencing
+https://registry.terraform.io/providers/kreuzwerker/docker/latest/docs/resources/volume#mountpoint
+https://developer.hashicorp.com/terraform/language/resources/provisioners/syntax#the-self-object
