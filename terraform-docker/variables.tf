@@ -19,13 +19,6 @@ variable "image" {
     }
 }
 
-
-# locals{ 
-#     container_count = length(var.ext_port[terraform.workspace])
-# } 
-
-
-
 variable "containername" {
     type =string
     default="nodered"

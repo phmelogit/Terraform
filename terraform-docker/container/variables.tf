@@ -1,6 +1,7 @@
 variable "name_in" {
     description = "name of container"
 }
+variable "count_in"{}
 
 variable "image_in" {
     description = "name of image"
