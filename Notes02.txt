@@ -132,3 +132,5 @@ https://developer.hashicorp.com/terraform/tutorials/configuration-language/for-e
 
 
 60. Using Count and for_each Together
+
+61. New Outputs and Map Transformations

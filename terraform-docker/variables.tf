@@ -1,9 +1,3 @@
-# variable "env" {
-#     type = string
-#     description = "Environment to deploy to"
-#     default = "dev"
-# }
-
 variable "image" {
     type = map
     description = "Image for container"

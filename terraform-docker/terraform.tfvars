@@ -1,4 +1,4 @@
-int_port = 1880
+
 ext_port = {
     nodered={
         dev  = [1980]
