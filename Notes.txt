@@ -1,0 +1,481 @@
+terraform {
+    required_providers {
+        docker = {
+        source  = "kreuzwerker/docker"
+        }
+    }
+}
+
+terraform init
+
+
+16. https://developer.hashicorp.com/terraform/language/files/dependency-lock
+
+terraform {
+    required_providers {
+        docker = {
+        source  = "kreuzwerker/docker"
+        version = "~>3.0.0"
+        }
+    }
+}
+
+
+terraform init --upgrade
+
+Modify terraform.lock.hcl
+
+
+
+17. Your First Terraform Apply. https://registry.terraform.io/providers/kreuzwerker/docker/latest/docs/resources/image.html
+
+terraform {
+  required_providers {
+    docker = {
+      source = "kreuzwerker/docker"
+    }
+  }
+}
+
+provider "docker" {}
+
+resource "docker_image" "nodered_image" {
+  name = "nodered/node-red:latest"
+}
+
+terraform plan
+terraform apply
+
+docker image ls
+
+
+
+18. Terraform Plan and Apply Deeper Dive. https://developer.hashicorp.com/terraform/cli/commands/apply
+
+terraform destroy
+terraform plan -out=plan1
+
+plan1 is encoded not encripted
+
+terraform apply plan1 
+It not ask for confirmation. Good for automation.
+
+terraform plan --destroy
+
+
+
+19. Referencing other Resources. https://developer.hashicorp.com/terraform/language/expressions#references-to-resource-attributes
+
+terraform {
+  required_providers {
+    docker = {
+      source = "kreuzwerker/docker"
+    }
+  }
+}
+
+provider "docker" {}
+
+resource "docker_image" "nodered_image" {
+  name = "nodered/node-red:latest"
+}
+
+resource "docker_container" "nodered_container" {
+  name  = "nodered"
+  image = docker_image.nodered_image.image_id
+  ports {
+    internal = 1880
+    external = 1880
+  }
+}
+
+
+
+20. Viewing Your Deployment in the Browser
+https://nodered.org/docs/getting-started/docker
+https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-metadata.html
+
+Get EC2 instance ip: "curl http://169.254.169.254/latest/meta-data/public-ipv4"
+
+
+
+21. Terraform State Deeper Dive. https://developer.hashicorp.com/terraform/language/state
+
+terraform.tfstate
+  "version": 4,
+  "terraform_version": "1.6.6",
+  "serial": 7,
+  "lineage": "aa7b00a5-4350-4bee-8972-57f48c973234",
+
+Important but will be used in future lessons.
+
+terraform destroy --auto-approve
+
+it creates a: 
+terraform.tfstate.backup
+  "version": 4,
+  "terraform_version": "1.6.6",
+  "serial": 7,
+  "lineage": "aa7b00a5-4350-4bee-8972-57f48c973234",
+
+sudo apt install jq
+choco install jq
+
+terraform show -json | jq
+{
+  "format_version": "1.0"
+}
+
+terraform apply --auto-approve
+
+terraform state list (Show all resources)
+    docker_container.nodered_container
+    docker_image.nodered_image
+
+
+22. Terraform Console and Outputs
+https://developer.hashicorp.com/terraform/cli/commands/console
+https://developer.hashicorp.com/terraform/language/values/outputs
+
+terraform show | greep name
+terraform show | findstr name
+
+terraform console
+
+
+23. The Join Functions
+https://developer.hashicorp.com/terraform/language/functions/join
+
+join(":", [something, otherthing])
+Result: something:otherthing
+
+
+
+24. The Random Resources
+https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/string
+
+Add a resource:
+resource "random_string" "random" {
+    length = 4
+    special = false
+    upper = false
+}
+
+terraform init (To avoid error: Error: Inconsistent dependency lock file)
+terraform apply --auto-approve
+
+terraform state list
+    docker_container.nodered_container
+    docker_image.nodered_image
+    random_string.random
+
+
+25. Multiple Resources and Count
+https://developer.hashicorp.com/terraform/language/meta-arguments/count
+
+...
+resource "random_string" "random" {
+    count = 2
+    length = 4
+    special = false
+    upper = false
+}
+
+terraform show
+    # random_string.random[0]:
+    resource "random_string" "random" {
+        id          = "f9ib"
+        length      = 4
+        lower       = true
+        ...
+    }
+
+    # random_string.random[1]:
+    resource "random_string" "random" {
+        id          = "7wl8"
+        length      = 4
+        lower       = true
+        ...
+    }    
+
+
+26. The Splat Expression. 
+https://developer.hashicorp.com/terraform/language/expressions#splat-expressions
+
+*
+
+
+
+27. For Loops
+https://developer.hashicorp.com/terraform/language/expressions#for-expressions
+
+[for i in docker_container.nodered_container[*] : join(":", i.network_data[*].ip_address, i.ports[*].external)]
+
+
+28. Tainting and Updating Resources
+https://developer.hashicorp.com/terraform/cli/commands/taint
+
+Warning: This command is deprecated. For Terraform v0.15.2 and later, we recommend using the -replace option with terraform apply instead (details below).
+
+
+
+29. State Locking and Breaking started
+https://developer.hashicorp.com/terraform/language/state/locking
+
+Don't use lock=false. It causes conflicts and duplications
+
+
+
+30. Terraform Import
+https://developer.hashicorp.com/terraform/cli/import
+https://developer.hashicorp.com/terraform/tutorials/state/state-import
+
+Import a resource into terraform state
+First you need to declare the resource and link with the existing resorces.
+
+
+31. Terraform Refresh and State rm. (Não é bom usar)
+https://developer.hashicorp.com/terraform/cli/commands/refresh
+https://developer.hashicorp.com/terraform/cli/commands/state/rm
+
+Terraform refresh <--- estranho
+
+
+32. Adding Variables. https://developer.hashicorp.com/terraform/language/values/variables
+
+variable "containername" {
+    type =string
+    default="nodered"
+}
+
+
+
+33. Variable Validation. https://developer.hashicorp.com/terraform/language/values/variables#custom-validation-rules
+
+variable "int_port" {
+    type =number
+    default="1880"
+    validation {
+      condition = var.int_port == 1880
+      error_message = "The internal port must be 1880."
+    }
+}
+
+
+34. Variables and Output files
+You can create a file named: output.tf and variables.tf and terraform will understand everithing.
+The name doesn't matter at all.
+
+
+35. Sensitive Variables and tfvars files. https://developer.hashicorp.com/terraform/language/values/variables#variable-definitions-tfvars-files
+Deve ficar no gitignore
+São as variaveis importantes
+
+
+36. Variable Definition Precedence
+
+No comando: "terraform plan"
+"terraform.tfvars" tem prioridade sobre os outros arquivos "tfvars"
+
+No comando: "terraform plan --var-file=west.tfvars" ou "terraform plan -var ext_port=1990"
+variaveis passadas na linha de comando tem prioridade sobre os arquivos "tfvars"
+
+No comando: "terraform plan --var-file=west.tfvars -var ext_port=1990"
+Os parametros passados por último tem prioridade sobre todos os outros anteriores, logo a porta usada seria 1990
+E aqui:"terraform plan -var ext_port=1990 --var-file=west.tfvars" 
+O valor dentro do arquivo west.tfvars, venceria.
+
+
+
+37. Hiding Sensitive Variables from CLI
+As informações sensives ficam expostas dentro do arquivo tfstate. Por isso é importante não subir no repositório.
+
+
+38. The Bind Mount and Local-Exec
+https://developer.hashicorp.com/terraform/language/resources/provisioners/local-exec
+https://nodered.org/docs/getting-started/docker
+https://registry.terraform.io/providers/kreuzwerker/docker/latest/docs/resources/container
+
+Local-Exec <-- não recomendado.
+Ele recomenda usar o Ansible 
+
+resource "null_resource" "dockervol" {
+  provisioner "local-exec" {
+    #command = "mkdir noderedvol || true / && sudo chown -R 1000:1000 noderedvol/"
+      command = <<EOT
+      if (!(Test-Path ${var.volpath})) {
+          New-Item -Path ${var.volpath} -ItemType Directory
+      }
+      EOT
+      interpreter = ["PowerShell", "-Command"]
+  }
+}
+
+
+39. Utilizing Local Values. https://developer.hashicorp.com/terraform/language/values/locals
+
+Terraform.tfvars
+ext_port = [1880, 1881, 1882, 1883]
+
+Variables.tf
+locals{ 
+    container_count = length(var.ext_port)
+} 
+
+resource "random_string" "random" {
+  count = local.container_count
+  ...
+}
+
+resource "docker_container" "nodered_container" {
+  count = local.container_count
+  ...
+}
+
+
+
+40. Min and Max Functions and Expand Exmpressions.
+https://developer.hashicorp.com/terraform/language/expressions#expanding-function-arguments
+https://developer.hashicorp.com/terraform/language/functions/max
+
+Usando min e max function e spred operator "..."
+
+variable "ext_port" {
+    type = list
+    validation {
+    #  condition = var.ext_port <= 65535 && var.ext_port > 0
+      condition = max(var.ext_port...) <= 65535 && min(var.ext_port...) > 0
+      error_message = "The external port must be in the valid port range 0 - 65535"
+    }
+}
+
+
+41. Path References and String Interpolation
+path.cwd
+path.root
+path.module
+
+resource "docker_container" "nodered_container" {
+  count = local.container_count
+  name  = join("-",[var.containername, random_string.random[count.index].result])
+  image = docker_image.nodered_image.image_id
+  ports {
+    internal = var.int_port
+    external = var.ext_port[count.index]
+  }
+  volumes {
+    container_path = "/data"
+    host_path = "$(path.cwd)\\noderedvol"
+  }
+}
+
+
+
+42. Maps and Lookups: External ports
+variables.tf
+variable "env" {
+    type = string
+    description = "Environment to deploy to"
+    default = "dev"
+}
+
+variable "image" {
+    type = map
+    description = "Image for container"
+    default = {
+        dev = "nodered/node-red:latest"
+        prod = "nodered/node-red:latest-minimal"
+    }
+}
+
+main.tf
+resource "docker_image" "nodered_image" {
+  # name = "nodered/node-red:latest"
+  name = lookup(var.image, var.env)
+}
+
+
+
+43. Maps and Lookups: External Ports
+
+terraform.tfvars
+ext_port = {
+    dev = [1980, 1981]
+    prod = [1880, 1881]
+}
+
+variables.tf
+variable "ext_port" {
+    # type = list
+    type = map
+    validation {
+      condition = max(var.ext_port["dev"]...) <= 65535 && min(var.ext_port["dev"]...) >= 1980
+      error_message = "The external port must be in the valid port range 0 - 65535"
+    }
+    validation {
+      condition = max(var.ext_port["prod"]...) < 1980 && min(var.ext_port["prod"]...) >= 1880
+      error_message = "The external port must be in the valid port range 0 - 65535"
+    }
+}
+
+main.tf
+resource "docker_container" "nodered_container" {
+  ...
+  ports {
+    internal = var.int_port
+    external = lookup(var.ext_port, var.env)[count.index]
+  }
+  ...
+}
+
+
+
+44. Terraform Workspaces. 
+https://developer.hashicorp.com/terraform/language/state/workspaces
+
+terraform workspace new dev
+terraform workspace new prod
+
+terraform workspace list
+terraform workspace show
+
+terraform workspace select dev
+terraform apply --auto-approve -var="env=dev"
+
+terraform workspace select prod
+terraform apply --auto-approve -var="env=prod"
+
+
+
+45. Referencing your Workspaces
+https://developer.hashicorp.com/terraform/language/state/workspaces
+
+trocou em todos os lugares onde usava a variável "env"
+
+variables.tf
+locals{ 
+    container_count = length(lookup(var.ext_port,terraform.workspace))
+} 
+
+main.tf
+resource "docker_container" "nodered_container" {
+  count = local.container_count
+  name  = join("-",[var.containername, terraform.workspace, random_string.random[count.index].result])
+  ...
+}
+
+
+46. Utilizing Map Keys instead of Lookups
+https://developer.hashicorp.com/terraform/language/functions/map
+
+
+# container_count = length(lookup(var.ext_port,terraform.workspace))
+container_count = length(var.ext_port[terraform.workspace])
+
+# external = lookup(var.ext_port, terraform.workspace)[count.index]
+external = var.ext_port[terraform.workspace][count.index]
+
+
+
+
+https://graphviz.org/download/

@@ -1,0 +1,134 @@
+https://graphviz.org/download/
+
+terraform validate
+
+terraform graph | dot -Tpdf > graph-plan.pdf
+terraform graph type= | dot -Tpdf > graph-plan.pdf
+
+cmd /c "terraform graph | dot -Tpdf > graph-plan.pdf"  
+
+
+
+
+51. Toubleshooting Dependencies
+
+resource "docker_container" "nodered_container" {
+  depends_on = [ null_resource.dockervol ]
+  ...
+}
+
+Para garantir que a pasta do volume será criada antes do container.
+
+
+
+
+52. The container module
+
+resource "docker_container" "nodered_container" {
+  depends_on = [ null_resource.dockervol ]
+  count = local.container_count
+  name  = join("-",[var.containername, terraform.workspace, random_string.random[count.index].result])
+  image = module.image.image_out
+  ports {
+    internal = var.int_port
+    external = var.ext_port[terraform.workspace][count.index]
+  }
+  volumes {
+    container_path = "/data"
+    host_path = var.volpath
+  }
+}
+
+mudou para:
+
+module "container" {
+  source = "./container"
+  depends_on = [ null_resource.dockervol ]
+  count = local.container_count
+  name_in  = join("-",[var.containername, terraform.workspace, random_string.random[count.index].result])
+  image_in = module.image.image_out
+  int_port_in = var.int_port
+  ext_port_in = var.ext_port[terraform.workspace][count.index]
+  vol_container_path_in = "/data"
+  vol_host_path_in = var.volpath
+}
+
+
+
+53. Module output
+O output do modulo não pode ser acessado diretamente pelo terraform console (parece um bug)
+Ficando da seguinte forma:
+output root:
+output "container-Name" {
+    value = module.container[*].container-Name
+    description = "Name of the containers"
+}
+
+output "IP-Address-and-ports" {
+    value = flatten(module.container[*].IP-Address-and-ports)
+    description = "IP adresses of the containers"
+}
+
+output module:
+output "container-Name" {
+    value = docker_container.nodered_container.name
+    description = "Container name."
+}
+
+output "IP-Address-and-ports" {
+    value = [for i in docker_container.nodered_container[*] : join(":", i.network_data[*].ip_address, i.ports[*].external)]
+    description = "IP adress of the container"
+}
+
+
+
+
+54. Module Information Flow
+
+
+55. Module Volume
+resource "docker_container" "nodered_container" {
+  name  = var.name_in
+  image = var.image_in
+  ports {
+    internal = var.int_port_in
+    external = var.ext_port_in
+  }
+  volumes {
+    container_path = var.vol_container_path_in
+    volume_name = docker_volume.container_volume.name
+  }
+}
+
+resource "docker_volume" "container_volume" {
+  name = "${var.name_in}-volume"
+}
+
+docker volume list
+docker volume rm -f name
+
+
+
+56. Module Volume
+
+resource "docker_volume" "container_volume" {
+  name = "${var.name_in}-volume"
+  lifecycle {
+    prevent_destroy = true
+  }
+}
+
+terraform state list
+terraform destroy --auto-approve (Não vai funcionar porque o prevent está como true, mas pode ser ignorado usando o target.)
+terraform destroy -target='module.container[0].docker_container.nodered_container' (precisa ficar entre '' no windows.)
+
+
+
+57. One Module for Multiple Resources
+
+
+58. e 59.
+https://developer.hashicorp.com/terraform/tutorials/configuration-language/for-each
+
+
+60. Using Count and for_each Together
