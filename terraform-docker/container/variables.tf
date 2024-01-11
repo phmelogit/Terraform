@@ -1,20 +1,20 @@
 variable "name_in" {
-    description = "name of container"
+  description = "name of container"
 }
-variable "count_in"{}
+variable "count_in" {}
 
 variable "image_in" {
-    description = "name of image"
+  description = "name of image"
 }
 
 variable "int_port_in" {
-    description = "Internal port"
+  description = "Internal port"
 }
 
 variable "ext_port_in" {
-    description = "External port"
+  description = "External port"
 }
 
-variable "vol_container_path_in" {
-    description = "Volume container path"
+variable "volumes_in" {
+  description = "Volume container path"
 }

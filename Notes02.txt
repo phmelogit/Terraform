@@ -142,3 +142,8 @@ https://developer.hashicorp.com/terraform/tutorials/configuration-language/for-e
 65. Terraform Apply Yourself - Self Referencing
 https://registry.terraform.io/providers/kreuzwerker/docker/latest/docs/resources/volume#mountpoint
 https://developer.hashicorp.com/terraform/language/resources/provisioners/syntax#the-self-object
+
+66.
+docker inspect $(docker ps -a -q) | grep volume
+terraform fmt -recursive
+
