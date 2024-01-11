@@ -33,9 +33,9 @@ resource "docker_container" "app_container" {
   }
 }
 
-module "volume"{
-  source = "./volume"
-  count = var.count_in
+module "volume" {
+  source       = "./volume"
+  count        = var.count_in
   volume_count = length(var.volume_in)
-  volume_name = "${var.name_in}-${terraform.workspace}-${random_string.random[count.index].result}-volume"
+  volume_name  = "${var.name_in}-${terraform.workspace}-${random_string.random[count.index].result}-volume"
 }

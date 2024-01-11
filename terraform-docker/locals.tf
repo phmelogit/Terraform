@@ -2,19 +2,19 @@ locals {
   deployment = {
     nodered = {
       container_count = length(var.ext_port["nodered"][terraform.workspace])
-      image = var.image["nodered"][terraform.workspace]
-      int = 1880
-      ext = var.ext_port["nodered"][terraform.workspace]
+      image           = var.image["nodered"][terraform.workspace]
+      int             = 1880
+      ext             = var.ext_port["nodered"][terraform.workspace]
       volumes = [
         { container_path = "/data" }
-      ]      
+      ]
     }
     influxdb = {
       container_count = length(var.ext_port["influxdb"][terraform.workspace])
-      image = var.image["influxdb"][terraform.workspace] 
-      int = 8086
-      ext = var.ext_port["influxdb"][terraform.workspace]
-      container_path = "/var/lib/influxdb"
+      image           = var.image["influxdb"][terraform.workspace]
+      int             = 8086
+      ext             = var.ext_port["influxdb"][terraform.workspace]
+      container_path  = "/var/lib/influxdb"
       volumes = [
         { container_path = "/var/lib/influxdb" }
       ]
