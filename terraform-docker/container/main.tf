@@ -13,10 +13,10 @@ resource "docker_container" "app_container" {
     external = var.ext_port_in[count.index]
   }
   dynamic "volumes" {
-    for_each = var.volumes_in
+    for_each = var.volume_in
     content {
       container_path = volumes.value["container_path"]
-      volume_name    = docker_volume.container_volume[volumes.key].name
+      volume_name    = module.volume[count.index].volume_output[volumes.key]
     }
   }
   provisioner "local-exec" {
@@ -33,23 +33,9 @@ resource "docker_container" "app_container" {
   }
 }
 
-resource "docker_volume" "container_volume" {
-  count = length(var.volumes_in)
-  name  = "${var.name_in}-${count.index}-volume"
-  lifecycle {
-    prevent_destroy = false
-  }
-  provisioner "local-exec" {
-    when        = destroy
-    command     = "mkdir ${path.cwd}/../backup"
-    interpreter = ["PowerShell", "-Command"]
-    on_failure  = continue
-  }
-  provisioner "local-exec" {
-    when = destroy
-    # command = "tar -czvf ${path.cwd}/../backup/${self.name}.tar.gz ${self.mountpoint}" <-- Lunix
-    command     = "tar -czvf ${path.cwd}/../backup/${self.name}.tar.gz \\\\wsl.localhost\\docker-desktop-data\\data\\docker\\volumes\\${self.name}"
-    interpreter = ["PowerShell", "-Command"]
-    on_failure  = fail
-  }
+module "volume"{
+  source = "./volume"
+  count = var.count_in
+  volume_count = length(var.volume_in)
+  volume_name = "${var.name_in}-${terraform.workspace}-${random_string.random[count.index].result}-volume"
 }

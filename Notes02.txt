@@ -147,3 +147,8 @@ https://developer.hashicorp.com/terraform/language/resources/provisioners/syntax
 docker inspect $(docker ps -a -q) | grep volume
 terraform fmt -recursive
 
+
+67. Nesting the Volume Module
+terraform workspace list
+sudo tree /var/lib/docker/volumes
+
