@@ -1,0 +1,25 @@
+70. Configuring Terraform Cloud
+
+Create organization
+mtc-terraform
+
+Create a new Workspace
+CLI Driven Workflow
+
+ph-dev
+
+mkdir terraform-aws
+copy and paste the json to backends.tf
+cd terraform-aws
+terraform login
+answer: "yes"
+access link to get the token (I named as :terraformlogin-token)
+informe token
+terraform init
+
+Go to settings, General, Execution Settings, choose local.
+
+
+
+
+
