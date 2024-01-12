@@ -24,3 +24,6 @@ Go to settings, General, Execution Settings, choose local.
 71. The AWS provider
 https://registry.terraform.io/providers/hashicorp/aws/latest/docs
 
+
+72. Deploy a VPC
+https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/vpc
